@@ -7,13 +7,14 @@ export interface GridPost {
   caption: string;
   status: string;
   eaten_at: string;
+  created_at: string;
   photoUrl: string | null;
   calories: number | null;
   items: CardNutritionItem[];
   isDrink: boolean;
 }
 interface GridRow {
-  id: string; caption: string; status: string; eaten_at: string;
+  id: string; caption: string; status: string; eaten_at: string; created_at: string;
   post_media: { position: number; storage_path: string; kind: "photo" | "card" }[];
 }
 interface GridItem { id: string; post_id: string; name: string; portion_grams: string | number | null }
@@ -52,7 +53,7 @@ async function gridNutrition(db: SupabaseClient, postIds: string[]): Promise<Map
 export async function getProfileGrid(db: SupabaseClient, userId: string): Promise<GridPost[]> {
   const posts: GridPost[] = [];
   for (let offset = 0;; offset += 100) {
-    const { data, error } = await db.from("posts").select("id,caption,status,eaten_at,post_media(position,storage_path,kind)").is("deleted_at", null)
+    const { data, error } = await db.from("posts").select("id,caption,status,eaten_at,created_at,post_media(position,storage_path,kind)").is("deleted_at", null)
       .eq("user_id", userId).order("eaten_at", { ascending: false }).order("id", { ascending: false }).range(offset, offset + 99);
     if (error) throw new Error("Profile posts could not be loaded.");
     const rows = (data ?? []) as unknown as GridRow[];
@@ -79,7 +80,7 @@ export async function getProfileGrid(db: SupabaseClient, userId: string): Promis
     }
     for (const row of rows) {
       const items = nutrition.get(row.id) ?? [];
-      posts.push({ id: row.id, caption: row.caption, status: row.status, eaten_at: row.eaten_at,
+      posts.push({ id: row.id, caption: row.caption, status: row.status, eaten_at: row.eaten_at, created_at: row.created_at,
         photoUrl: signed.get(photoPaths.get(row.id) ?? "") ?? null, items, isDrink: drinkIds.has(row.id),
         calories: row.status === "ready" && nutrition.has(row.id) ? sumNutrition(items).calories : null });
     }
