@@ -90,8 +90,8 @@ export async function readLabelFromPhotos(photos:Uint8Array[],read:(image:Uint8A
 export function labelNutrition(reading:LabelReading,servings:number){
  if(!reading.is_label||!reading.per_serving)throw Error("A readable nutrition panel is required.");
  const {kcal,...values}=reading.per_serving;
- const scaled={calories:kcal===null?null:kcal*servings,...Object.fromEntries(Object.entries(values).map(([key,v])=>[key,v===null?null:v*servings])),micronutrients:[],source_ref:"label"} as Record<string, unknown>;
+ const scaled={calories:kcal===null?null:kcal*servings,...Object.fromEntries(Object.entries(values).map(([key,v])=>[key,v===null?null:v*servings])),micronutrients:[],source_ref:"label",record_description:null,record_data_type:null} as Record<string, unknown>;
  if(reading.serving)scaled.portion_unit=reading.serving.unit;
  else scaled.portion_unit="serving";
- return scaled as {calories:number|null;protein_g:number|null;carbs_g:number|null;fat_g:number|null;fibre_g:number|null;sugar_g:number|null;sodium_mg:number|null;micronutrients:[];source_ref:string;portion_unit:string};
+ return scaled as {calories:number|null;protein_g:number|null;carbs_g:number|null;fat_g:number|null;fibre_g:number|null;sugar_g:number|null;sodium_mg:number|null;micronutrients:[];source_ref:string;record_description:null;record_data_type:null;portion_unit:string};
 }

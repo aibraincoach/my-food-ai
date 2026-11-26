@@ -1,3 +1,4 @@
+import {recordMetadata} from "./record-metadata";
 // FDC foodNutrients are standardized per 100 units, including Branded foods;
 // they are not the per-serving labelNutrients values. USDA documentation:
 // https://fdc.nal.usda.gov/GBFPD_Documentation/
@@ -32,6 +33,8 @@ export interface ScaledNutrition {
   micronutrients: unknown[];
   sourceRef: string;
   foodCategory?: string | null;
+  recordDescription: string | null;
+  recordDataType: string | null;
 }
 
 function rankOf(dataType: string): number {
@@ -155,6 +158,7 @@ export function scaleNutrition(
       micronutrients: [],
       sourceRef: unavailableRef(unavailable),
       foodCategory: null,
+      recordDescription:null,recordDataType:null,
     };
   }
   // An estimate has no USDA id; its ref names the basis.
@@ -180,6 +184,7 @@ export function scaleNutrition(
       micronutrients,
       sourceRef,
       foodCategory: food.foodCategory ?? null,
+      ...recordMetadata(sourceRef,food.description,food.dataType),
     };
   }
   const scale = (
@@ -208,5 +213,6 @@ export function scaleNutrition(
     micronutrients,
     sourceRef,
     foodCategory: food.foodCategory ?? null,
+    ...recordMetadata(sourceRef,food.description,food.dataType),
   };
 }

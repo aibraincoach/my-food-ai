@@ -110,7 +110,7 @@ export async function POST(request: Request) {
     const portion = servingPortion(food);
     const n = scaleNutrition(food, portion.amount, null, portion.unit);
     const { data, error } = await publish(admin, { p_user_id: user.id, p_eaten_at: eatenAt, p_name: food.description.slice(0, 160), p_grams: portion.amount,
-      p_nutrition: { calories: n.calories, protein_g: n.proteinG, carbs_g: n.carbsG, fat_g: n.fatG, fibre_g: n.fibreG, sugar_g: n.sugarG, sodium_mg: n.sodiumMg, micronutrients: n.micronutrients, source_ref: n.sourceRef, portion_unit: portion.unit } });
+      p_nutrition: { calories: n.calories, protein_g: n.proteinG, carbs_g: n.carbsG, fat_g: n.fatG, fibre_g: n.fibreG, sugar_g: n.sugarG, sodium_mg: n.sodiumMg, micronutrients: n.micronutrients, source_ref: n.sourceRef,record_description:n.recordDescription??null,record_data_type:n.recordDataType??null, portion_unit: portion.unit } });
     if (error?.code === "42501") return NextResponse.json({ message_code: "route_ac6a88b19530" }, { status: 401 });
     if (error) return NextResponse.json({  message_code: error.code?.startsWith("22") ? "route_90f611283783" : "error_0795a0b4a0a6" }, { status: error.code?.startsWith("PT") ? Number(error.code.slice(2)) : error.code?.startsWith("22") ? 400 : 500 });
     const finished=await finish(data as string,admin);if(finished!==201)return NextResponse.json({message_code:finished===409?"route_1502498aacbf":"unknownFailure"},{status:finished});

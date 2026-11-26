@@ -1,3 +1,4 @@
+import {recordMetadata} from "./record-metadata";
 import { foodCategory } from './food-category';
 // Pure product/portion data shared by the capture client and the server-only FDC resolver.
 export interface BarcodeNutrition {
@@ -6,6 +7,7 @@ export interface BarcodeNutrition {
 }
 export interface BarcodeProduct {
   attribution?: "off";
+  recordDescription?:string|null;recordDataType?:string|null;
   foodCategory?: string | null;
   fdcId: number; gtin: string; name: string; brand: string | null;
   // FDC standardises branded values to 100 g or 100 ml; no density conversion is made between them.
@@ -34,6 +36,7 @@ export function productFromFood(food: unknown, gtin: string): BarcodeProduct | n
   // A product with no energy and no macros is not usable nutrition.
   if (per100g.calories === null && per100g.protein_g === null && per100g.carbs_g === null && per100g.fat_g === null) return null;
   return {
+    ...recordMetadata(String(f.fdcId),f.description,f.dataType),
     fdcId: f.fdcId, gtin, name: f.description, foodCategory: foodCategory(f),
     basisUnit: typeof f.servingSizeUnit === "string" && f.servingSizeUnit.toLowerCase() === "ml" ? "ml" : "g",
     brand: typeof f.brandOwner === "string" ? f.brandOwner : typeof f.brandName === "string" ? f.brandName : null,
@@ -72,11 +75,14 @@ export function barcodeAmounts(product: BarcodeProduct): number[] {
 }
 
 export function barcodeNutrition(product: BarcodeProduct, amount: number) {
+  const sourceRef="nutritionSource" in product && product.nutritionSource === "own" ? `barcode-own:${product.gtin}` : product.attribution === "off" ? `off:${product.gtin}` : String(product.fdcId);
+  const pair=recordMetadata(sourceRef,product.recordDescription,product.recordDataType);
   const factor = amount / 100;
   return {
     ...Object.fromEntries(Object.entries(product.per100g).map(([key, value]) => [key, value === null ? null : value * factor])),
     micronutrients: product.micronutrients.map((n) => ({ ...n, value: n.value * factor })),
-    source_ref: "nutritionSource" in product && product.nutritionSource === "own" ? `barcode-own:${product.gtin}` : product.attribution === "off" ? `off:${product.gtin}` : String(product.fdcId),
+    source_ref: sourceRef,
+    record_description:pair.recordDescription,record_data_type:pair.recordDataType,
     portion_unit: product.basisUnit,
     food_category: product.foodCategory ?? null,
   };

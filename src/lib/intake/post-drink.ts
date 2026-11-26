@@ -34,7 +34,7 @@ export function parseDrinkInput(body: unknown): DrinkInput | null {
 export async function postDrink(admin: SupabaseClient, userId: string, input: DrinkInput, tz: string, operation:{id:string;key:string;eatenAt:string}): Promise<{ postId: string; drink: DrinkCardData | null }> {
   const eatenAt = operation.eatenAt;
   let nutrition: Record<string, unknown> = { calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, fibre_g: 0, sugar_g: 0, sodium_mg: 0,
-    micronutrients: [{ nutrientId: 1051, nutrientName: "Water", unitName: "G", value: input.ml, basis: "portion" }], source_ref: "user:drink-tile" };
+    micronutrients: [{ nutrientId: 1051, nutrientName: "Water", unitName: "G", value: input.ml, basis: "portion" }], source_ref: "user:drink-tile",record_description:null,record_data_type:null };
   let caffeineMg=input.caffeineMg;
   if(isTeaId(input.id)){
     const reference=TEA_REFERENCES[input.id],food=await getFoodById(admin,reference.fdcId);
@@ -43,7 +43,7 @@ export async function postDrink(admin: SupabaseClient, userId: string, input: Dr
     if(!caffeine||!Number.isFinite(caffeine.value)||caffeine.value<0)throw new Error('Tea caffeine is not available.');
     const n=scaleNutrition(food,input.ml*reference.gramsPerMl);
     caffeineMg=caffeine.value*input.ml*reference.gramsPerMl/100;
-    nutrition={calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG,fibre_g:n.fibreG,sugar_g:n.sugarG,sodium_mg:n.sodiumMg,micronutrients:n.micronutrients,source_ref:n.sourceRef,food_category:n.foodCategory??null};
+    nutrition={calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG,fibre_g:n.fibreG,sugar_g:n.sugarG,sodium_mg:n.sodiumMg,micronutrients:n.micronutrients,source_ref:n.sourceRef,record_description:n.recordDescription??null,record_data_type:n.recordDataType??null,food_category:n.foodCategory??null};
   }else if (input.kind === "caffeine") {
     const sources={
       cola:{ query: "Beverages, carbonated, cola, regular", match: /carbonated.*cola.*regular/i,kind:/cola/i },
@@ -61,7 +61,7 @@ export async function postDrink(admin: SupabaseClient, userId: string, input: Dr
     const n = scaleNutrition(food, input.ml);
     nutrition = { calories: n.calories, protein_g: n.proteinG, carbs_g: n.carbsG, fat_g: n.fatG, fibre_g: n.fibreG, sugar_g: n.sugarG, sodium_mg: n.sodiumMg,
       micronutrients: [...n.micronutrients.filter(row => (row as { nutrientId?: number }).nutrientId !== 1057),
-        { nutrientId: 1057, nutrientName: "Caffeine", unitName: "MG", value: input.caffeineMg, basis: "portion" }], source_ref: n.sourceRef };
+        { nutrientId: 1057, nutrientName: "Caffeine", unitName: "MG", value: input.caffeineMg, basis: "portion" }], source_ref: n.sourceRef,record_description:n.recordDescription??null,record_data_type:n.recordDataType??null };
   }
   const { data, error } = await admin.rpc("publish_drink_operation", { p_operation_id:operation.id,p_request_key:operation.key,p_user_id: userId, p_eaten_at: eatenAt,
     p_kind: input.kind, p_ml: input.ml, p_label: input.label, p_caffeine_mg: caffeineMg, p_nutrition: nutrition });

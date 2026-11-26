@@ -20,8 +20,8 @@ export async function identifyDrinks(admin:SupabaseClient,_userId:string,photo:U
   const food=match?.food??null;
   if(!plainWater&&!isDrinkItem({name:item.name,food_category:food?.foodCategory}))continue;
   const scaled=match?scaleNutrition(match.food,item.portionGrams,match.unavailable):null;
-  const nutrition:DrinkNutrition=plainWater?{calories:0,protein_g:0,carbs_g:0,fat_g:0,fibre_g:0,sugar_g:0,sodium_mg:0,micronutrients:[],source_ref:'user:drink-volume',food_category:'Water'}:
-   {calories:scaled!.calories,protein_g:scaled!.proteinG,carbs_g:scaled!.carbsG,fat_g:scaled!.fatG,fibre_g:scaled!.fibreG,sugar_g:scaled!.sugarG,sodium_mg:scaled!.sodiumMg,micronutrients:scaled!.micronutrients as StoredNutrient[],source_ref:scaled!.sourceRef,food_category:scaled!.foodCategory??null};
+  const nutrition:DrinkNutrition=plainWater?{calories:0,protein_g:0,carbs_g:0,fat_g:0,fibre_g:0,sugar_g:0,sodium_mg:0,micronutrients:[],source_ref:'user:drink-volume',food_category:'Water',record_description:null,record_data_type:null}:
+   {calories:scaled!.calories,protein_g:scaled!.proteinG,carbs_g:scaled!.carbsG,fat_g:scaled!.fatG,fibre_g:scaled!.fibreG,sugar_g:scaled!.sugarG,sodium_mg:scaled!.sodiumMg,micronutrients:scaled!.micronutrients as StoredNutrient[],source_ref:scaled!.sourceRef,food_category:scaled!.foodCategory??null,record_description:scaled!.recordDescription,record_data_type:scaled!.recordDataType};
   if(!plainWater&&isAlcoholic({food_category:nutrition.food_category,micronutrients:nutrition.micronutrients}))continue;
   if(!keepsCaffeine({name:item.name,food_category:nutrition.food_category,micronutrients:nutrition.micronutrients}))nutrition.micronutrients=nutrition.micronutrients.filter(n=>n.nutrientId!==1057);
   const caffeine=nutrition.micronutrients.find(n=>n.nutrientId===1057);

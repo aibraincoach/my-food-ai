@@ -28,5 +28,5 @@ export function correctedPhotoDrink(previous: PhotoDrink, correction: DrinkCorre
  const micronutrients = [{nutrientId:1051,nutrientName:'Water',unitName:'G',value:ml,basis:'portion' as const},
   ...(caffeineMg === null ? [] : [{nutrientId:1057,nutrientName:'Caffeine',unitName:'MG',value:caffeineMg,basis:'portion' as const}])];
  return {name:correction.name.trim(),ml,caffeineMg,kcal:macros.calories,grams:null,source:previous.source,
-  nutrition:{...macros,micronutrients,source_ref:`user:drink-correction:${readingId}`,food_category:null}};
+  nutrition:{...macros,micronutrients,source_ref:`user:drink-correction:${readingId}`,food_category:null,record_description:null,record_data_type:null}};
 }

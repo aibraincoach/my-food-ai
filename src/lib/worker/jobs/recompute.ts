@@ -53,7 +53,7 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
       return {
         post_item_id: item.id, calories: n.calories, protein_g: n.proteinG,
         carbs_g: n.carbsG, fat_g: n.fatG, fibre_g: n.fibreG, sugar_g: n.sugarG,
-        sodium_mg: n.sodiumMg, micronutrients: n.micronutrients, source_ref: n.sourceRef, food_category: n.foodCategory ?? null,
+        sodium_mg: n.sodiumMg, micronutrients: n.micronutrients, source_ref: n.sourceRef,record_description:n.recordDescription??null,record_data_type:n.recordDataType??null, food_category: n.foodCategory ?? null,
       };
     });
     const writes=resolved.filter(row=>row!==null);
