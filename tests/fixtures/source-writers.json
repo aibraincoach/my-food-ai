@@ -196,6 +196,11 @@
       {
         "file": "src/lib/pipeline/persist.ts",
         "kind": "property",
+        "expression": "copied.source_ref as string|null??null"
+      },
+      {
+        "file": "src/lib/pipeline/persist.ts",
+        "kind": "property",
         "expression": "scaled.sourceRef"
       },
       {
