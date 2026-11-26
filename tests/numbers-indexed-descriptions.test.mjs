@@ -1,0 +1,22 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
+import {randomUUID} from 'node:crypto';
+import {readFileSync} from 'node:fs';
+const local=Boolean(process.env.TEST_SQL_DATABASE_URL);
+test('indexed descriptions keep the stored basis and make search-only g1 records unknown', {skip:!local},t=>{
+ const db=process.env.TEST_SQL_DATABASE_URL;assert.equal(process.env.MFA_TEST_DISPOSABLE,'1');assert.ok(['127.0.0.1','localhost'].includes(new URL(db).hostname));
+ const sql=input=>execFileSync('psql',['-XqAt','--dbname',db,'-v','ON_ERROR_STOP=1'],{input,encoding:'utf8',timeout:10000});
+ const owner=randomUUID(),posts=[randomUUID(),randomUUID(),randomUUID()],items=posts.map(()=>randomUUID()),ids=['996940001','996940002','996940003'],search='694-test-search-'+owner;
+ t.after(()=>sql(`delete from posts where user_id='${owner}';delete from profiles where id='${owner}';delete from auth.users where id='${owner}';delete from fdc_cache where query in('fdc-detail:${ids[0]}','fdc-detail:${ids[2]}','${search}');`));
+ sql(`begin;insert into auth.users(id)values('${owner}');insert into profiles(id,handle)values('${owner}','indexed-${owner.slice(0,8)}');${posts.map((p,i)=>`insert into posts(id,user_id,status)values('${p}','${owner}','ready');insert into post_items(id,post_id,name,portion_grams)values('${items[i]}','${p}','black coffee',100);insert into item_nutrition(post_item_id,calories,protein_g,carbs_g,fat_g,source_ref,micronutrients)values('${items[i]}',30,1,1,1,'${ids[i]}','${i===0?'[{"approximation":{"kind":"closest","basis":"Coffee, milk based"}}]':'[]'}');`).join('')}insert into fdc_cache(query,response)values('fdc-detail:${ids[0]}','{"fdcId":${ids[0]},"description":"Coffee brewed"}'),('fdc-detail:${ids[2]}','{"payload":{"fdcId":${ids[2]},"description":"Coffee brewed"}}'),('${search}','{"foods":[{"fdcId":${ids[1]},"description":"Coffee brewed"}]}');commit;`);
+ const rules=readFileSync(new URL('../scripts/numbers/14-rule-failures.sql',import.meta.url),'utf8').replaceAll(":'uid'",`'${owner}'`),rows=sql(rules).trim().split('\n').filter(Boolean).map(row=>row.split('|')),byPost=new Map(rows.map(row=>[row[0],row]));
+ assert.equal(byPost.has(posts[0].slice(0,8)),false,'stored milk basis wins over conflicting plain detail');
+ assert.deepEqual(byPost.get(posts[1].slice(0,8)).slice(1),['0','','1'],'search-only identity is unknown, never a g1 wrong');
+ assert.deepEqual(byPost.get(posts[2].slice(0,8)).slice(1),['1','g1','0'],'indexed payload detail still proves the plain-coffee rule');
+ const records=sql(readFileSync(new URL('../scripts/numbers/23-records.sql',import.meta.url),'utf8')).trim().split('\n').map(JSON.parse).filter(row=>row.account===owner.slice(0,8));
+ assert.equal(records.length,3);const byRecord=new Map(records.map(row=>[row.record,row]));
+ assert.equal(byRecord.get(ids[0]).description,'Coffee, milk based');assert.equal(byRecord.get(ids[0]).description_source,'basis');assert.equal(byRecord.get(ids[0]).detail_available,true);
+ assert.equal(byRecord.get(ids[1]).description,null);assert.equal(byRecord.get(ids[1]).description_source,'none');assert.equal(byRecord.get(ids[1]).detail_available,false);
+ assert.equal(byRecord.get(ids[2]).description_source,'detail');assert.equal(byRecord.get(ids[2]).detail_available,true);
+});
