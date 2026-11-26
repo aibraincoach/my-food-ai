@@ -1,8 +1,30 @@
+import {effectiveFunctions,nutritionWriters} from '../fixtures/sql-functions.mjs';
+import path from 'node:path';
+import {tmpdir} from 'node:os';
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import{spawnSync}from'node:child_process';
 const raw=fs.readFileSync(new URL('../../supabase/migrations/0087_item_record_description.sql',import.meta.url),'utf8');
 const migration=raw.replace(/^begin;$/m,'').replace(/^commit;$/m,'');
 const summary=`'{"code":"mealSummary","values":{"kind":"consumed","totals":{"calories":100,"protein_g":5,"carbs_g":10,"fat_g":2},"approximations":[],"unavailable":[]}}'::jsonb`;
-function sql(text){const db=process.env.TEST_SQL_DATABASE_URL;assert.ok(db&&['127.0.0.1','localhost','[::1]'].includes(new URL(db).hostname),'Disposable local DB required');const r=spawnSync('psql',['-XqAt','--dbname',db,'-v','ON_ERROR_STOP=1'],{input:'begin;'+text+'rollback;',encoding:'utf8',timeout:15000});assert.ifError(r.error);return r;}
+// Exercise the rollout boundary on either a base DB or an already-migrated disposable DB.
+// All temporary body/schema restoration is inside this test's rollback transaction.
+const migrationDir=new URL('../../supabase/migrations/',import.meta.url).pathname;
+const priorWriters=nutritionWriters(effectiveFunctions(migrationDir,file=>path.basename(file)==='0087_item_record_description.sql'?'':fs.readFileSync(file,'utf8')));
+const restoreBase=`select exists(select 1 from information_schema.columns where table_schema='public' and table_name='item_nutrition' and column_name='record_description') as record_installed \\gset
+\\if :record_installed
+${priorWriters.map(row=>row.sql.replace(/^create(?:\s+or\s+replace)?\s+function/i,'create or replace function')).join('\n')}
+alter table public.item_nutrition drop column record_description,drop column record_data_type;
+\\endif
+`;
+function sql(text,preinstall=false){
+ const db=process.env.TEST_SQL_DATABASE_URL;
+ assert.ok(db&&['127.0.0.1','localhost','[::1]'].includes(new URL(db).hostname),'Disposable local DB required');
+ const dir=fs.mkdtempSync(path.join(tmpdir(),'mfa-record-sql-')),file=path.join(dir,'case.sql');
+ try {
+  fs.writeFileSync(file,'begin;'+restoreBase+(preinstall?migration+restoreBase:'')+text+'rollback;',{mode:0o600});
+  const r=spawnSync('psql',['-XqAt','--dbname',db,'-v','ON_ERROR_STOP=1','--file',file],{encoding:'utf8',timeout:15000});
+  assert.ifError(r.error);return r;
+ }finally{fs.unlinkSync(file);fs.rmdirSync(dir);}
+}
 function check(text){const r=sql(migration+text);assert.equal(r.status,0,r.stderr);}
 const helpers=String.raw`
 create function pg_temp.record_fixture() returns table(owner_id uuid,post_id uuid,item_id uuid) language plpgsql as $f$
@@ -109,4 +131,8 @@ test('unexpected writer body fails the guard before DDL; all catalog writers kee
  end loop;
  if exists(select 1 from record_writer_before b join pg_proc p on p.oid=b.oid where (p.proowner,p.proacl,p.prosecdef,p.proconfig) is distinct from (b.proowner,b.proacl,b.prosecdef,b.proconfig))then raise exception 'Writer privileges changed';end if;
  end $test$;`);assert.equal(r.status,0,r.stderr);
+});
+
+test('rollout tests also run when the disposable stack already applied0087',()=>{
+ const r=sql(migration+helpers+`do $test$ declare f record;begin select * into f from pg_temp.record_fixture();perform pg_temp.assert_record(f.post_id,'Source food','SR Legacy');end $test$;`,true);assert.equal(r.status,0,r.stderr);
 });
