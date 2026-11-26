@@ -1,5 +1,23 @@
 # Production migration status
 
+## 0087 file-first preparation — UNAPPLIED and held (2026-11-26)
+
+`0087_item_record_description.sql` is **UNAPPLIED and held**. Merging PR #1422
+applies nothing. Apply needs the owner's written database yes and the PM's exact
+order, after 0082 and 0084 apply and read-back. It must also follow any earlier
+held migration (0078–0080 or 0085–0086) that changes a writer it replaces;
+0087 pins all sixteen prior writer bodies and refuses a changed or missing body.
+The PM sequences these applies, with read-back after each. On this base,
+0078–0080 are absent/reserved and 0085–0086 do not change nutrition writers.
+
+The additive columns and four constraints take an ACCESS EXCLUSIVE lock and
+constraint-validation scan under 1 s lock and 5 s statement bounds. Old rows
+stay null, with no backfill; same-ref copies keep their source row's null pair
+by design. The separate #1421 app PR must validate the pair before writing
+(an invalid pair fails the whole write) and merges only after 0087 apply.
+No production apply, backfill or app switch is authorized by this status entry.
+See [the complete writer inventory](1421-record-description-writers.md).
+
 ## 0086 file-first preparation — UNAPPLIED and held (2026-11-25)
 
 `0086_mext_trace_reference.sql` is **UNAPPLIED and held**. Merging the files
