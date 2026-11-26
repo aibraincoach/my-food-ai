@@ -1,3 +1,4 @@
+import * as cardMediaModule from '../src/lib/posts/card-media.ts';
 import {tabReturnModule,returnToTab} from './fixtures/tab-return-module.mjs';
 import * as readingFormat from '../src/i18n/format.ts';
 import {servingsMessageValues} from '../src/i18n/servings.ts';
@@ -29,7 +30,7 @@ const days={dateInZone:value=>new Date(value).toISOString().slice(0,10),shiftDay
 async function serverHome(seedRead){
  const exported={};
  const noop=()=>null;
- const require=name=>{
+ const require=name=>{if(name==='@/lib/posts/card-media')return cardMediaModule;
   if(name==='next-intl/server')return englishIntlServer;
   if(name==='next-intl')return englishIntl;
   if(name==='@/i18n/format')return readingFormat;
@@ -44,7 +45,7 @@ async function serverHome(seedRead){
   if(name==='@/lib/supabase/server')return{createClient:async()=>({auth:{getUser:async()=>({data:{user:{id:'owner'}}})}})};
   if(name==='@/lib/posts/day-totals-refresh')return{createDayTotalsRefresh};
   if(name==='@/lib/posts/day-total-changes')return{dayTotalRefreshDates};
-   if(name==='@/lib/posts/feed')return{getFeed:seedRead,getFirstFeedPhoto:async()=>null};
+   if(name==='@/lib/posts/feed')return{getFeed:seedRead};
   if(name==='@/lib/posts/days')return days;
   if(name==='@/lib/posts/today-view')return{todayFromPage};
   if(name==='@/lib/posts/home-today')return{homeToday:async()=>null,readToday:async()=>null};
@@ -71,7 +72,7 @@ function attribute(tree,name){
 }
 function fallbackFor(tree){
  const exported={};
- vm.runInNewContext(compile('../src/components/Feed.tsx'),{exports:exported,document:{querySelector(selector){return selector.split(',').some(part=>{const name=/^\[([^\]]+)\]$/.exec(part.trim())?.[1];return name&&attribute(tree,name);})?{}:null;}},require(name){
+ vm.runInNewContext(compile('../src/components/Feed.tsx'),{exports:exported,document:{querySelector(selector){return selector.split(',').some(part=>{const name=/^\[([^\]]+)\]$/.exec(part.trim())?.[1];return name&&attribute(tree,name);})?{}:null;}},require(name){if(name==='@/lib/posts/card-media')return cardMediaModule;
  if(name==='next-intl')return englishIntl;
  if(name==='next-intl/server')return englishIntlServer;
  if(name==='@/i18n/format')return readingFormat;
@@ -120,7 +121,7 @@ async function mountedFeed(initialPosts,{cachedPosts,failPage=false,initialPage,
   document,
   window,
   CustomEvent:class{constructor(type,init){this.type=type;this.detail=init?.detail;}},setInterval:()=>1,clearInterval(){},setTimeout:(fn,ms=0)=>{timers.set(++nextTimer,{fn,at:now+ms});return nextTimer;},clearTimeout:id=>timers.delete(id),
-  require(name){
+  require(name){if(name==='@/lib/posts/card-media')return cardMediaModule;
  if(name==='@/lib/client/tab-return')return tabReturnModule(window,document);
  if(name==='next-intl')return englishIntl;
  if(name==='next-intl/server')return englishIntlServer;
@@ -233,7 +234,7 @@ test('feed insertion subscription uses the authenticated account rather than a s
 });
 
 test('a photo after a drink gets the single first-photo priority, matching the fast server copy',async()=>{
- const posts=[meal('drink'),{...meal('first-photo'),photoUrl:'/p/first_1080.webp'},{...meal('second-photo'),photoUrl:'/p/second_1080.webp'}];
+ const posts=[{...meal('drink'),photoUrl:'/p/drink_1080.webp',slides:[{url:'/p/drink_1080.webp'}],kind:'drink',drinkSource:'sheet',drink:{source:'sheet'}},{...meal('first-photo'),photoUrl:'/p/first_1080.webp',slides:[{url:'/p/first_1080.webp'}],drink:null},{...meal('second-photo'),photoUrl:'/p/second_1080.webp',slides:[{url:'/p/second_1080.webp'}],drink:null}];
  const app=await mountedFeed(posts,{initialPage:{posts,days:[],nextCursor:null},initialUserId:'owner'});
  try{
   const cards=new Map();const visit=node=>{

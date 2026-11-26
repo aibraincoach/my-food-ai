@@ -1,3 +1,4 @@
+import * as cardMediaModule from '../src/lib/posts/card-media.ts';
 import {englishIntlServer} from './fixtures/english-intl.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -9,7 +10,7 @@ function load(file){
  const source=readFileSync(new URL(file,import.meta.url),'utf8');
  const exports={};
  const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
- vm.runInNewContext(code,{exports,Date:class extends Date{constructor(){super();throw Error('shell read unstable current time before request boundary');}},Promise,AbortSignal,setTimeout,clearTimeout,require(name){
+ vm.runInNewContext(code,{exports,Date:class extends Date{constructor(){super();throw Error('shell read unstable current time before request boundary');}},Promise,AbortSignal,setTimeout,clearTimeout,require(name){if(name==='@/lib/posts/card-media')return cardMediaModule;
   if(name==='next-intl/server')return englishIntlServer;
   if(name==='react')return{cache:fn=>fn,Suspense:'Suspense'};
   if(name==='react/jsx-runtime')return{jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})};

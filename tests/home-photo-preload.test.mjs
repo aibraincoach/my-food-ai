@@ -1,3 +1,4 @@
+import * as cardMediaModule from '../src/lib/posts/card-media.ts';
 import {englishIntl,englishIntlServer} from './fixtures/english-intl.mjs';
 import * as readingFormat from '../src/i18n/format.ts';
 import {verifiedUserCookie} from '../src/lib/auth/verified-cookie.ts';
@@ -18,7 +19,7 @@ test('middleware makes no photo query or HTTP image preload while preserving aut
  for(const [pathname,user] of [['/',{id:owner}],['/search',{id:owner}],['/days',{id:owner}],['/',null]]){
   const response=new Response(null,{headers:{Link:'</existing>; rel=preconnect'}});let photoReads=0;
   const exports={};
-  vm.runInNewContext(compiled,{exports,AbortSignal,console:{info(){}},process:{env:{}},URL,require(name){
+  vm.runInNewContext(compiled,{exports,AbortSignal,console:{info(){}},process:{env:{}},URL,require(name){if(name==='@/lib/posts/card-media')return cardMediaModule;
  if(name==='next-intl')return englishIntl;
  if(name==='next-intl/server')return englishIntlServer;
  if(name==='@/i18n/format')return readingFormat;
@@ -44,7 +45,7 @@ test('middleware makes no photo query or HTTP image preload while preserving aut
 test('Home HTML preload and first image expose the same single 320 candidate without a second base-only hint',async()=>{
  const url=smallFeedPhotoUrl(owner,post,media,'a'.repeat(32)),preloads=[],exports={};
  const source=readFileSync(new URL('../src/app/(tabs)/page.tsx',import.meta.url),'utf8')+'\nexport {HomeFirstPhoto,homeSeed};';
- vm.runInNewContext(compile(source),{exports,Date,Promise,Array,AbortSignal,setTimeout,clearTimeout,require(name){
+ vm.runInNewContext(compile(source),{exports,Date,Promise,Array,AbortSignal,setTimeout,clearTimeout,require(name){if(name==='@/lib/posts/card-media')return cardMediaModule;
  if(name==='next-intl')return englishIntl;
  if(name==='next-intl/server')return englishIntlServer;
  if(name==='@/i18n/format')return readingFormat;
@@ -59,7 +60,7 @@ test('Home HTML preload and first image expose the same single 320 candidate wit
   if(name==='@/lib/auth/verified-user')return{verifiedUserId:async()=>owner};
   if(name==='@/lib/supabase/server')return{createClient:async()=>({})};
   if(name==='@/lib/posts/days')return{validZone:()=> 'UTC',dateInZone:()=> '2026-11-03',shiftDay:(_,step)=>String(step)};
-  if(name==='@/lib/posts/feed')return{getFeed:async()=>{return{posts:[{id:post,caption:'Rice',eaten_at:'2026-11-03T10:00:00Z',photoUrl:url}],days:[],nextCursor:null};}};
+  if(name==='@/lib/posts/feed')return{getFeed:async()=>{return{posts:[{id:'drink',caption:'Tea',eaten_at:'2026-11-03T11:00:00Z',photoUrl:'/drink.webp',slides:[{url:'/drink.webp'}],kind:'drink',drinkSource:'sheet',drink:{source:'sheet'}},{id:post,caption:'Rice',eaten_at:'2026-11-03T10:00:00Z',photoUrl:url,slides:[{url}],drink:null}],days:[],nextCursor:null};}};
   if(name==='@/lib/posts/home-today')return{readToday:async()=>({view:{date:'2026-11-03',posts:[],totals:{}},total:{day:'2026-11-03',kcal:0,ready:false,missing:[],known:0,posts:[]}})};
   if(name==='next/link'||name.startsWith('@/components/'))return{default:name};
   if(name==='@/lib/posts/today-view')return{};

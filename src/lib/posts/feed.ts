@@ -295,21 +295,6 @@ export async function toFeedPosts(db: SupabaseClient, rows: PostRow[], zone = "U
 
 export const VISIBLE_MEAL_FILTER="needs_input.is.null,status.eq.failed";
 
-// The critical first-photo path does not wait for six meals' nutrition and
-// feedback fences. Embedded media remains authorized by the caller's RLS.
-export async function getFirstFeedPhoto(db: SupabaseClient, userId: string) {
-  const {data, error} = await db.from('posts').select('id,user_id,caption,eaten_at,post_media(id,storage_path,kind,position,photo_secret)').is("deleted_at", null)
-    .eq('user_id',userId).neq('status','needs_input').or(VISIBLE_MEAL_FILTER)
-    .order('eaten_at',{ascending:false}).order('id',{ascending:false}).limit(1).abortSignal(AbortSignal.timeout(8000)).maybeSingle();
-  if(error)throw new Error('The first meal could not be read.');
-  if(!data)return null;
-  if(data.user_id!==userId)throw new Error('The first meal owner did not match.');
-  const photo=[...(data.post_media??[])].filter(row=>row.kind==='photo').sort((a,b)=>a.position-b.position)[0];
-  const photoUrl=photo?requiredPhotoUrl(data.user_id,data.id,photo.id,(photo as {photo_secret?:string|null}).photo_secret):null;
-  return {id:data.id,caption:data.caption??'',eaten_at:data.eaten_at,photoUrl};
-}
-
-
 // Stable keyset pagination by eaten_at (when the meal was eaten): the ID breaks ties between equal timestamps.
 export async function getFeed(
   supabase: SupabaseClient,

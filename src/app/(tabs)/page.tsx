@@ -1,3 +1,4 @@
+import {cardMedia} from '@/lib/posts/card-media';
 import {getTranslations} from 'next-intl/server';
 import type { TodayView } from "@/lib/posts/today-view";
 import { verifiedUserId } from "@/lib/auth/verified-user";
@@ -114,7 +115,7 @@ async function HomeFirstPhoto() {
     const seed = await homeDeadline(homeSeed());
     if (seed) {
       zone = seed.zone;
-      const post = seed.page.posts.find((row) => row.photoUrl) ?? seed.page.posts[0];
+      const post = seed.page.posts.find((row) => cardMedia(row,row.drink??null)==='photo');
       if (post) first = { id: post.id, caption: post.caption, eaten_at: post.eaten_at, photoUrl: post.photoUrl };
     }
   } catch { /* The normal feed boundary and cache remain available. */ }
