@@ -1,3 +1,4 @@
+import {tabReturnModule,returnToTab} from './fixtures/tab-return-module.mjs';
 import * as readingFormat from '../src/i18n/format.ts';
 import {servingsMessageValues} from '../src/i18n/servings.ts';
 import {englishIntl,englishIntlServer} from './fixtures/english-intl.mjs';
@@ -8,13 +9,14 @@ import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 import ts from 'typescript';
 import {retainCompleteItems,isSettled,hasUnavailableFields} from '../src/lib/posts/feed.ts';
-test('a failed optional card read waits for focus before recovering its nutrition',async()=>{
+test('a failed optional card read waits for tab return before recovering its nutrition',async()=>{
  const effects=[],states=[];const timers=new Map(),events=new EventTarget();let timerId=0,calls=0,recovered=false,stateIndex=0,now=100000;
  const initial={id:'meal',status:'ready',itemsUnavailable:true,mediaUnavailable:true,items:[{id:'known',name:'Rice',calories:90}],slides:[],analysisFingerprint:'same'};
  const channel={on(){return this;},subscribe(){return this;}};
  const code=ts.transpileModule(readFileSync(new URL('../src/components/RealtimePost.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
- const exports={};vm.runInNewContext(code,{exports,Date:{now:()=>now},document:{visibilityState:'visible',addEventListener(){},removeEventListener(){}},window:events,CustomEvent,setTimeout(fn,ms=0){timers.set(++timerId,{fn,at:now+ms});return timerId;},clearTimeout:id=>timers.delete(id),
- require(name){
+ const document=Object.assign(new EventTarget(),{hidden:false,visibilityState:'visible'});
+ const exports={};vm.runInNewContext(code,{exports,Date:{now:()=>now},document,window:events,CustomEvent,setTimeout(fn,ms=0){timers.set(++timerId,{fn,at:now+ms});return timerId;},clearTimeout:id=>timers.delete(id),
+ require(name){if(name==='@/lib/client/tab-return')return tabReturnModule(events,document);
  if(name==='next-intl')return englishIntl;
  if(name==='next-intl/server')return englishIntlServer;
  if(name==='@/i18n/format')return readingFormat;
@@ -30,7 +32,7 @@ test('a failed optional card read waits for focus before recovering its nutritio
  exports.default({initial,renderCard:()=>null});const cleanups=effects.map(fn=>fn());await new Promise(resolve=>setImmediate(resolve));
  assert.equal(calls,1);
  for(let elapsed=0;elapsed<600000;elapsed+=1000){now+=1000;for(const[id,timer]of [...timers])if(timer.at<=now){timers.delete(id);timer.fn();}await new Promise(resolve=>setImmediate(resolve));}
- assert.equal(calls,1,'ten simulated minutes add no timed read');recovered=true;events.dispatchEvent(new Event('focus'));await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(calls,1,'ten simulated minutes add no timed read');recovered=true;returnToTab(document);await new Promise(resolve=>setImmediate(resolve));
  assert.equal(calls,2);assert.equal(states[1].current.itemsUnavailable,false);assert.equal(states[1].current.items[0].calories,100);
  for(const cleanup of cleanups)cleanup?.();
 });
