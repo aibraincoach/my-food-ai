@@ -60,7 +60,7 @@ export default function PostReadinessListener() {
         if (live && revision === authRevision && refreshAfterReadinessSeed(location.pathname,Boolean(document.querySelector("[data-home-feed]")))) refreshView();
       }
     };
-    // Reconcile newest meals on mount and focus; Realtime handles live changes.
+    // Reconcile newest meals on mount and return; Realtime handles live changes.
     let discovered = false;
     const discover = async () => {
       const revision = authRevision;
@@ -79,7 +79,7 @@ export default function PostReadinessListener() {
         return false;
       }
     };
-    // One boundary event keeps the local day current; focus and visibility reconcile changes.
+    // One boundary event keeps the local day current; tab returns reconcile changes.
     let day = new Date().toDateString();
     const visible = () => {
       if (document.visibilityState !== "visible" || !live) return;
@@ -158,7 +158,7 @@ export default function PostReadinessListener() {
     void db.auth.getSession().then(({data: {session}}) => {
       if (authRevision === initialRevision) subscribeUser(session?.user.id ?? null);
     });
-    // Focus reconciles tracked old IDs even when they are outside the newest discovery page.
+    // A tab return reconciles tracked old IDs even when they are outside the newest discovery page.
     const reconcilePending = async () => {
       if (!pending.size || checkingPending || document.visibilityState === "hidden") return;
       checkingPending = true;

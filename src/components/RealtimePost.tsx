@@ -55,7 +55,7 @@ if(!isSettled(fresh.status)||fresh.status==='failed'){
           setSnapshot(previous => ({ seed: initial, current: retainCompleteItems(previous.seed.id === fresh.id ? previous.current : undefined, fresh) }));
         } while (live && again && pageVisible());
       } catch {
-        // Keep the visible card until a new event or focus requests another read.
+        // Keep the visible card until a new event or tab return requests another read.
       } finally { inFlight = false; }
     };
     // A finished card drawn from the server's page is already current; re-reading every card on mount doubled the first feed read.

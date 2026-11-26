@@ -568,7 +568,7 @@ function UploadHydratedCard({post,upload,attachment,header}:{post:FeedPost;uploa
           if(card.status==='ready'&&lastStatus.current!=='ready')window.dispatchEvent(new CustomEvent('post-ready',{detail:{id}}));
           lastStatus.current=card.status;
         }
-      } catch { /* Keep the last visible card; a new event or focus can read again. */ }
+      } catch { /* Keep the last visible card; a new event or tab return can read again. */ }
       finally {
         inFlight=false;
         if(live){

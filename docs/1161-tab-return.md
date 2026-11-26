@@ -49,3 +49,7 @@ Use a fresh disposable stack and private output directory outside the repository
 `tests/browser/tab-return-behavior.mjs` uses the same fixture and loopback admin key, with ONLY_ENGINE=chromium or webkit. It tests hidden comments/facts, readiness, another-tab discovery, a simulated day boundary and visible discovery failure. The Realtime fixture acknowledges subscriptions only and emits no data: this proves return reconciliation, not Realtime event transport. WebKit runs in its Linux container; real devices remain unproven.
 
 Detailed local receipts, including failed exploratory probes, are under `/home/opc/.openrig/shared-docs/rigs/myfoodai/state/build/1161-tab-return/`. No production calls or model/provider traffic is part of this packet.
+
+## Validation receipt
+
+62 focused regression cases pass with zero skips, including the stale-feedback response, current-revision rerender, status/metadata comparisons, old pending IDs, channel ownership, day boundary, first-hint interaction and saved-meal readiness. Chromium and container WebKit each pass11 served behavior cases with no page errors. Earlier exploratory selector and navigation-settlement failures are retained in the local receipts; the final browser fixture waits for outstanding fetches before forced navigation and shutdown, without filtering errors. The strict count assertions fail on main and pass on the implementation, including two immediate returns. Types, scoped lint, message checks and the production build are part of the packet; no full-suite or real-device claim is made.
