@@ -20,11 +20,11 @@ function fixture({visible=true,seed=false}={}){
  const exports={},events=new Map(),idle=[],frames=[],copies=[];let intersect,decoded=0,resolveSharp,rejectSharp;
  const sharpReady=new Promise((resolve,reject)=>{resolveSharp=resolve;rejectSharp=reject;});
  const window={innerHeight:844,addEventListener:(name,fn)=>events.set(name,fn),requestIdleCallback:fn=>idle.push(fn)};
- const document={readyState:'complete',baseURI:'https://example.test/'};
+ const serverImages=[];const document={readyState:'complete',baseURI:'https://example.test/',querySelectorAll:()=>serverImages};
  const image={isConnected:true,src:url.replace('_1080','_320'),srcset:'',sizes:'',closest:()=>seed?{}:null,getBoundingClientRect:()=>visible?{width:390,height:390,top:100,bottom:490}:{width:0,height:0,top:0,bottom:0},decode:async()=>{decoded++;}};
  const source=ts.transpileModule(readFileSync(new URL('../src/lib/posts/feed-photo-url.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
  vm.runInNewContext(source,{exports,window,document,URL,setTimeout,Image:class{constructor(){copies.push(this);}get currentSrc(){return new URL(this.src.replace('_1080','_1200'),document.baseURI).href;}decode(){return sharpReady;}},requestAnimationFrame:fn=>frames.push(fn),getComputedStyle:()=>({visibility:'visible'}),IntersectionObserver:class{constructor(fn){intersect=fn;}observe(){}disconnect(){}}});
- return{image,idle,frames,copies,resolveSharp,rejectSharp,settled:exports.firstPhotoSettled,register:exports.registerFirstPhoto,without:exports.settleWithoutFirstPhoto,upgrade:signal=>exports.firstPhotoUpgrade(url,image,signal??new AbortController().signal),show(){visible=true;intersect();},notify(){intersect();},decoded:()=>decoded};
+ return{image,idle,frames,copies,serverImages,resolveSharp,rejectSharp,settled:exports.firstPhotoSettled,register:exports.registerFirstPhoto,without:exports.settleWithoutFirstPhoto,upgrade:signal=>exports.firstPhotoUpgrade(url,image,signal??new AbortController().signal),show(){visible=true;intersect();},notify(){intersect();},decoded:()=>decoded};
 }
 const turn=()=>new Promise(resolve=>setImmediate(resolve));
 async function finishFrames(f){for(let n=0;n<4;n++){await turn();while(f.frames.length)f.frames.shift()();}}
@@ -50,12 +50,12 @@ test('a page without a registered priority photo settles at load',async()=>{
 });
 test('a registered priority photo does not settle as a no-photo page',async()=>{
  const f=fixture();f.register();let done=false;void f.settled.then(()=>{done=true;});f.without();await turn();assert.equal(done,false);
- const c=new AbortController();c.abort();await f.upgrade(c.signal);await f.settled;
+ const c=new AbortController();c.abort();await f.upgrade(c.signal);await turn();assert.equal(done,false);
 });
-test('failure and abort both settle the first-photo sequence without retry',async()=>{
+test('a real failure settles but an aborted attempt does not settle the first-photo sequence',async()=>{
  const f=fixture();f.register();const pending=f.upgrade();f.idle.shift()();await turn();
  const failed=assert.rejects(pending,/sharp failed/);f.rejectSharp(Error('sharp failed'));await paint(f);await failed;await f.settled;
- const g=fixture();g.register();const c=new AbortController(),aborted=g.upgrade(c.signal);c.abort();await aborted;await g.settled;
+ const g=fixture();g.register();let done=false;void g.settled.then(()=>{done=true;});const c=new AbortController(),aborted=g.upgrade(c.signal);c.abort();await aborted;await turn();assert.equal(done,false);
 });
 
 test('a differently selected decoded candidate never replaces the small frame',async()=>{
@@ -63,4 +63,9 @@ test('a differently selected decoded candidate never replaces the small frame',a
  Object.defineProperty(f.copies[0],'currentSrc',{value:'https://example.test/unrelated.webp'});f.resolveSharp();
  const rejected=assert.rejects(pending,/candidate does not match/);await paint(f);await rejected;await f.settled;
  assert.equal(f.image.src,url.replace('_1080','_320'));
+});
+
+test('server markup protects a priority photo before hydration registers it',async()=>{
+ const f=fixture();f.serverImages.push({closest:()=>null});assert.equal(f.without(),false);let done=false;void f.settled.then(()=>{done=true;});await turn();assert.equal(done,false);
+ const seed=fixture();seed.serverImages.push({closest:()=>({})});assert.equal(seed.without(),true);await seed.settled;
 });

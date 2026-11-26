@@ -16,9 +16,12 @@ export default function DeferredEffects() {
       clearTimeout(cap);
     };
     const loaded = () => {
-      settleWithoutFirstPhoto();
-      void firstPhotoSettled.then(() => {
-        if (live && !enabled) frame = requestAnimationFrame(enable);
+      frame = requestAnimationFrame(() => {
+        if (!live || enabled) return;
+        if (settleWithoutFirstPhoto()) { enable(); return; }
+        void firstPhotoSettled.then(() => {
+          if (live && !enabled) frame = requestAnimationFrame(enable);
+        });
       });
     };
     const cap = setTimeout(enable, Math.max(0, 8000 - performance.now()));

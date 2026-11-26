@@ -125,7 +125,7 @@ function MealPhoto({url,priority,alt}:{url:string;priority:boolean;alt:string}) 
  },[active,priority]);
  const sources=priority?firstPhotoSources(active):{src:active,srcSet:feedPhotoSrcSet(active),sizes:FEED_PHOTO_SIZES};
  // eslint-disable-next-line @next/next/no-img-element
- return <><img ref={image} src={priority||nearViewport?sources.src:undefined} srcSet={priority||nearViewport?sources.srcSet:undefined} crossOrigin="anonymous" sizes={sources.sizes} width={1080} height={1080} fetchPriority={priority?"high":undefined} loading={priority?"eager":"lazy"} decoding="async" alt={alt} className="h-full w-full object-cover"
+ return <><img ref={image} data-first-photo={priority?"":undefined} src={priority||nearViewport?sources.src:undefined} srcSet={priority||nearViewport?sources.srcSet:undefined} crossOrigin="anonymous" sizes={sources.sizes} width={1080} height={1080} fetchPriority={priority?"high":undefined} loading={priority?"eager":"lazy"} decoding="async" alt={alt} className="h-full w-full object-cover"
   onError={()=>{setRead({path:imageIdentity(active),url:active,failed:true});setPhotoError({url:active,key:'mealPhotoFailed'});}}
   onLoad={()=>{setPhotoError(previous=>previous?.key==='mealPhotoFailed'?null:previous);if(read.failed||read.url!==active||read.path!==imageIdentity(active))setRead({path:imageIdentity(active),url:active,failed:false});}}/>{photoError?.url===active&&<span role="status" className="absolute bottom-3 left-3 rounded-field bg-surface px-2 text-meta text-text">{t(photoError.key)}</span>}</>;
 }

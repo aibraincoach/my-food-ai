@@ -34,7 +34,13 @@ let settleFirstPhoto!: () => void;
 export const firstPhotoSettled = new Promise<void>(resolve => { settleFirstPhoto = resolve; });
 export function registerFirstPhoto(): void { priorityRegistered = true; }
 // Called at load, after priority readers have registered during their render.
-export function settleWithoutFirstPhoto(): void { if (!priorityRegistered) settleFirstPhoto(); }
+export function settleWithoutFirstPhoto(): boolean {
+  const serverPhoto = Array.from(document.querySelectorAll<HTMLImageElement>('img[data-first-photo]'))
+    .some(image => !image.closest('[data-fast-feed-seed]'));
+  if (priorityRegistered || serverPhoto) return false;
+  settleFirstPhoto();
+  return true;
+}
 
 const sharpPhotos = new Map<string, Promise<HTMLImageElement>>();
 function sharpPhoto(url: string): Promise<HTMLImageElement> {
@@ -63,9 +69,8 @@ function sharpPhoto(url: string): Promise<HTMLImageElement> {
 // mounted feed image upgrades, after its small first frame has actually painted.
 export async function firstPhotoUpgrade(url: string, image: HTMLImageElement, signal: AbortSignal): Promise<void> {
   if (image.closest('[data-fast-feed-seed]')) return;
-  if (signal.aborted || !image.isConnected) { settleFirstPhoto(); return; }
-  const settle = () => settleFirstPhoto();
-  signal.addEventListener('abort', settle, {once: true});
+  if (signal.aborted || !image.isConnected) return;
+  let painted = false;
   try {
     const sharp = sharpPhoto(url);
     // Start the sharp fetch on the existing load/idle trigger, independently of
@@ -109,8 +114,11 @@ export async function firstPhotoUpgrade(url: string, image: HTMLImageElement, si
     image.src = url;
     await image.decode();
     await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+    painted = !signal.aborted;
+  } catch (error) {
+    if (!signal.aborted) settleFirstPhoto();
+    throw error;
   } finally {
-    signal.removeEventListener('abort', settle);
-    settleFirstPhoto();
+    if (painted) settleFirstPhoto();
   }
 }
