@@ -13,7 +13,7 @@ export async function ProfileGrid({ posts }: { posts: GridPost[] }) {
           {post.photoUrl ? (
             // Signed private media must bypass the public image optimizer.
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={post.photoUrl} alt={post.caption || t("meal")} className="h-full w-full object-cover" />
+            <img src={post.photoUrl} alt={post.caption || t("meal")} loading="lazy" decoding="async" width={640} height={640} className="h-full w-full object-cover" />
           ) : post.status !== "ready" ? (
             <span className="text-meta text-muted">{post.status === "failed" ? t("analyseFailed") : post.status === "needs_input" ? t("needsInput") : t("processing")}</span>
           ) : (
