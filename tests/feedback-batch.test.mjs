@@ -4,8 +4,8 @@ const turn=()=>new Promise(resolve=>setImmediate(resolve));
 function fixture(){
  const timers=[],calls=[],pending=[];
  const db={from(table){assert.equal(table,'post_feedback');return{select(columns){assert.equal(columns,'post_id,verdict,model_comment_id,item_fingerprint');return{in(column,ids){assert.equal(column,'post_id');calls.push([...ids]);return new Promise((resolve,reject)=>pending.push({resolve,reject}));}};}};}};
- const module=feedbackBatchModule(db,fn=>timers.push(fn));
- return {...module,calls,pending,async dispatch(){assert.equal(timers.length,1);timers.shift()();await turn();}};
+ const reader=feedbackBatchModule(db,fn=>timers.push(fn));
+ return {...reader,calls,pending,async dispatch(){assert.equal(timers.length,1);timers.shift()();await turn();}};
 }
 test('simultaneous feedback waiters share one owner-session query, dedupe ids and receive their own row or null',async()=>{
  const f=fixture(),first=f.requestFeedback('one'),again=f.requestFeedback('one'),absent=f.requestFeedback('two');
