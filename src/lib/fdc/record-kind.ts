@@ -71,7 +71,7 @@ export function recordKind(description: string, category?: string | null): FoodK
 export type RecordCheck = { strong: string[]; weak: string[]; score: number };
 
 // Every signal for one food and its record. kcalPer100g is the record's (or the stored food's) energy density, if known.
-export function checkRecord(name: string, record: { description: string; category?: string | null; kcalPer100g?: number | null }): RecordCheck {
+export function checkRecord(name: string, record: { description: string; category?: string | null; kcalPer100g?: number | null; kind?: FoodKind | null }): RecordCheck {
   const strong: string[] = [], weak: string[] = [];
   const kinds = nameKinds(name);
   const head = name.split(/\b(?:with|and|in)\b|&/i)[0].trim().split(/\s+/).at(-1) ?? "";
@@ -84,10 +84,21 @@ export function checkRecord(name: string, record: { description: string; categor
   const spiceProduct = /\b(spices?|herbs?|seasonings?|powders?|masala)\b/i.test(name) || headKinds.has("condiment");
   const spiceCategory = /\b(spices?|herbs?|seasonings?)\b/i.test(record.category ?? "")
     && !/\b(soups?|mixtures)\b/i.test(record.category ?? "");
-  const kind = spiceCategory && mainHead && !spiceProduct ? "condiment" : recordKind(record.description, record.category);
-  if (kind && SINGLE_KINDS.has(kind) && kinds.size > 0 && !kinds.has(kind)) strong.push(`kind: the record is a ${kind}; the name has no ${kind} word`);
+  const kind = record.kind ?? (spiceCategory && mainHead && !spiceProduct ? "condiment" : recordKind(record.description, record.category));
+  // #1153: coleslaw names cabbage slaw; this reviewed noun is not a suffix rule.
+  const COMPOUND_NOUNS: Readonly<Record<string,string>> = {coleslaw:"slaw"};
+  const words=(text:string)=>(text.toLowerCase().match(/[a-z]+/g)??[]).map(word=>word.replace(/(?:es|s)$/, ""));
+  const targets=words(name).filter(word=>word.length>=4);
+  const recordHead=record.description.split(",")[0];
+  const separator=/\b(?:with|and|in)\b|&/i.exec(recordHead);
+  const lead=separator?recordHead.slice(0,separator.index):"";
+  const remainder=separator?recordHead.slice(separator.index+separator[0].length):"";
+  const ownAccompaniment=record.kind==null && kind==="condiment" && !record.category?.trim() && !!separator
+    && nameKinds(lead).size===0 && nameKinds(remainder).has("condiment")
+    && words(lead).some(word=>targets.some(target=>word===target || COMPOUND_NOUNS[word]===target));
+  if (!ownAccompaniment && kind && SINGLE_KINDS.has(kind) && kinds.size > 0 && !kinds.has(kind)) strong.push(`kind: the record is a ${kind}; the name has no ${kind} word`);
   // A name that is only fruit or only a drink, matched to a record of another kind.
-  if (kind && kinds.size > 0 && [...kinds].every(k => k === "fruit" || k === "drink") && !kinds.has(kind) && kind !== "dairy") strong.push(`kind: the name is a ${[...kinds].join(" or ")}; the record is a ${kind}`);
+  if (!ownAccompaniment && kind && kinds.size > 0 && [...kinds].every(k => k === "fruit" || k === "drink") && !kinds.has(kind) && kind !== "dairy") strong.push(`kind: the name is a ${[...kinds].join(" or ")}; the record is a ${kind}`);
   if (/\braw\b/i.test(record.description) && COOKED_WORDS.test(name) && !RAW_FOODS.test(name)) strong.push("raw: the record is raw and the name is a cooked food or dish");
   // #1258: preserved fruit does not represent frying. A reference that
   // itself states frying, or names the same syrup-served dish, remains eligible.
@@ -114,6 +125,6 @@ export function checkRecord(name: string, record: { description: string; categor
 }
 
 /** True when the record is plainly another kind of food: the matcher drops it before choosing. */
-export function recordContradicts(name: string, food: { description: string; foodCategory?: string }): boolean {
-  return checkRecord(name, { description: food.description, category: food.foodCategory }).strong.length > 0;
+export function recordContradicts(name: string, food: { description: string; foodCategory?: string; kind?: FoodKind | null }): boolean {
+  return checkRecord(name, { description: food.description, category: food.foodCategory, kind: food.kind }).strong.length > 0;
 }
