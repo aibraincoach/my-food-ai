@@ -8,7 +8,7 @@ import sharp from 'sharp';
 import * as photo from '../src/lib/posts/feed-photo.ts';
 import {smallFeedPhotoUrl} from '../src/lib/posts/feed-photo-url.ts';
 import {createClient} from '@supabase/supabase-js';
-import {getFeed,getFirstFeedPhoto,toFeedPost} from '../src/lib/posts/feed.ts';
+import {getFeed,toFeedPost} from '../src/lib/posts/feed.ts';
 
 const owner='11111111-1111-4111-8111-111111111111',post='22222222-2222-4222-8222-222222222222',media='33333333-3333-4333-8333-333333333333';
 const path=`${owner}/${post}/0.jpg`;
@@ -82,7 +82,7 @@ test('native work is limited to four concurrent requests and release is idempote
  finally {releases.forEach(release=>release?.());}
 });
 
-test('SSR seed and every batch slide use immutable owner-scoped private identities',async()=>{
+test('every batch slide uses immutable owner-scoped private identities',async()=>{
  const nextPost='44444444-4444-4444-8444-444444444444',nextMedia='55555555-5555-4555-8555-555555555555';
  const rows=[post,nextPost].map((id,index)=>({id,user_id:owner,status:'queued',caption:'Meal',created_at:'2026-11-03T01:00:00Z',eaten_at:`2026-11-0${3-index}T01:00:00Z`}));
  const pictures=[{id:media,post_id:post,storage_path:path,kind:'photo',position:0},{id:nextMedia,post_id:nextPost,storage_path:`${owner}/${nextPost}/0.jpg`,kind:'photo',position:0}];
@@ -98,8 +98,8 @@ test('SSR seed and every batch slide use immutable owner-scoped private identiti
   }
   throw Error('Unexpected read '+url.pathname);
  }}});
- const page=await getFeed(db,owner,null,'UTC',6,{summaries:false}),seed=await getFirstFeedPhoto(db,owner);
- assert.equal(page.posts[0].photoUrl,smallFeedPhotoUrl(owner,post,media));assert.equal(seed.photoUrl,page.posts[0].photoUrl);
+ const page=await getFeed(db,owner,null,'UTC',6,{summaries:false});
+ assert.equal(page.posts[0].photoUrl,smallFeedPhotoUrl(owner,post,media));
  assert.equal(page.posts[1].photoUrl,smallFeedPhotoUrl(owner,nextPost,nextMedia));assert.equal(signed,0);
 });
 

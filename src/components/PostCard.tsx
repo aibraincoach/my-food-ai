@@ -1,5 +1,6 @@
 "use client";
 
+import {cardMedia,isSheetDrink} from '@/lib/posts/card-media';
 import {useFailureMessages} from '@/i18n/failure-messages';
 import {useLocale,useTranslations} from 'next-intl';
 import type {Locale} from '@/i18n/locales';
@@ -87,7 +88,8 @@ export default function PostCard({ post, showDate = false, upload, priority = fa
   useEffect(()=>{rememberPost(post);},[post]);
   const [slide,setSlide]=useState(0);
   const localClock=useLocalTime(post.eaten_at);const localDate=useLocalDate(post.eaten_at);
-  const hasDrink=(record.kind==='drink'||Boolean(drink)) && (record.drinkSource ?? drink?.source ?? 'sheet') === 'sheet';
+  const hasDrink=isSheetDrink(record,drink);
+  const media=cardMedia(post,drink,upload);
   const displayRecord = drink ? { ...record, dayHydration: { totalMl: drink.totalMl, drinksMl: drink.drinksMl, foodMl: drink.foodMl, caffeineMg: drink.dayCaffeineMg ?? drink.caffeineMg } } : record;
   return <article className="flex flex-col" data-post-id={post.id} data-post-status={post.status} data-upload-id={upload?.operationId}>
     <div className="flex min-h-[52px] items-center gap-[10px] px-inset">
@@ -100,7 +102,7 @@ export default function PostCard({ post, showDate = false, upload, priority = fa
         {label:t('delete'),muted:true,onSelect:()=>window.dispatchEvent(new CustomEvent('delete-post',{detail:{id:post.id,post}}))},
       ]}/>}
     </div>
-    {upload?.previewUrl?<UploadMedia upload={upload} post={post} onIndexChange={setSlide} nutrition={<CaptionCard post={post} drink={drink}/>}/>:drink && hasDrink ? <Link href={`/posts/${post.id}`} aria-label={t('openDrinkDetails')} className="block"><CaptionCard post={post} drink={drink} /></Link> : post.slides?.length ? <Carousel items={post.items} priority={priority} canAddNotEaten={post.status==='ready'&&post.slides.some(s=>s.kind==='photo')} slides={post.slides} caption={post.caption} postId={post.id} href={`/posts/${post.id}`} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} onIndexChange={setSlide} nutrition={post.status === "ready" ? <CaptionCard post={post} drink={drink} /> : <div className="flex aspect-square items-center justify-center bg-card text-detail text-muted">{t('processing')}</div>} /> : post.status === "ready" && post.items.length ? <Link href={`/posts/${post.id}`} aria-label={t('openMealDetails')} className="block"><CaptionCard post={post} drink={drink} /></Link> : null}
+    {media==='upload'&&upload?<UploadMedia upload={upload} post={post} onIndexChange={setSlide} nutrition={<CaptionCard post={post} drink={drink}/>}/>:media==='drink' ? <Link href={`/posts/${post.id}`} aria-label={t('openDrinkDetails')} className="block"><CaptionCard post={post} drink={drink} /></Link> : media==='photo' ? <Carousel items={post.items} priority={priority} canAddNotEaten={post.status==='ready'&&post.slides.some(s=>s.kind==='photo')} slides={post.slides} caption={post.caption} postId={post.id} href={`/posts/${post.id}`} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} onIndexChange={setSlide} nutrition={post.status === "ready" ? <CaptionCard post={post} drink={drink} /> : <div className="flex aspect-square items-center justify-center bg-card text-detail text-muted">{t('processing')}</div>} /> : post.status === "ready" && post.items.length ? <Link href={`/posts/${post.id}`} aria-label={t('openMealDetails')} className="block"><CaptionCard post={post} drink={drink} /></Link> : null}
     {!(upload&&!upload.postId&&upload.state==='failed')&&<div inert={Boolean(upload&&!upload.postId)} className={upload&&!upload.postId?"pointer-events-none opacity-50":undefined}><PostActions post={post} postId={post.id} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} drink={hasDrink} saved={Boolean(record.saved_meal_id)} slides={hasDrink?1:post.slides?.length??1} index={slide}/></div>}
     <div className={`flex flex-col gap-1 px-inset ${upload&&!upload.postId&&upload.state==='failed'?'pt-3':'pt-[10px]'}`}>
       <PostCaption postId={post.id} handle={handle} caption={upload&&!upload.postId?upload.caption:post.caption}/>
