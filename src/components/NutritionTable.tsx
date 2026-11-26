@@ -2,6 +2,7 @@ import {useLocale,useTranslations} from 'next-intl';
 import type {Locale} from '@/i18n/locales';
 import {formatEnergy,formatNutrient,formatMicroNutrient} from '@/i18n/format';
 import {foodApproximation} from '@/lib/fdc/approximation-metadata';
+import {mealSources} from '@/lib/nutrition/meal-sources';
 import OpenFoodFactsAttribution from './OpenFoodFactsAttribution';
 import { nutritionGaps, gapSentence, NUTRIENT_KEYS, sumNutrition, type CurrentItem } from "@/lib/nutrition/totals";
 
@@ -12,6 +13,8 @@ export default function NutritionTable({ items }: { items: CurrentItem[] }) {
  const tn=useTranslations('nutrition'),labels=useTranslations('nutrients');
   const t=useTranslations('card'),tp=useTranslations('post'),locale=useLocale() as Locale;
   const estimated=items.filter(item=>foodApproximation(item)?.kind==='estimate');
+  const sources=mealSources(items);
+  const sourceLabels=sources.filter(source=>!['unrecorded','partial'].includes(source.kind)).map(source=>t(({usda:'sourceUsda',off:'sourceOff',saved:'sourceSaved',label:'sourceLabel',estimate:'sourceEstimate',mext:'sourceMext',entered:'sourceEntered',amount:'sourceAmount'} as const)[source.kind as 'usda'|'off'|'saved'|'label'|'estimate'|'mext'|'entered'|'amount']));
   const totals = sumNutrition(items);
   const rows = nutritionTableRows(items,tn,labels,locale);
   const gap=gapSentence(nutritionGaps(totals,NUTRIENT_KEYS),tn,locale,items.map(item=>({name:item.name,sourceRef:item.source_ref})),true);
@@ -23,7 +26,11 @@ export default function NutritionTable({ items }: { items: CurrentItem[] }) {
         <td className="whitespace-nowrap py-grid pl-grid text-right">{row.value===null?t('unavailable'):row.micro?formatMicroNutrient(locale,row.value):row.unit.toLowerCase()==='kcal'?formatEnergy(locale,row.value):formatNutrient(locale,row.value)}{row.value === null ? "" : ` ${row.unit}`}</td>
       </tr>)}</tbody>
     </table>
-    <p className="pt-sheet-top text-label text-muted">{t('sourceNote')}</p>
+    <div className="pt-sheet-top text-label text-muted" data-meal-sources>
+      {sourceLabels.length>0&&<p>{t('sourceLead',{sources:sourceLabels.join(locale==='ja'?'、':', ')})}</p>}
+      {sources.filter(source=>source.kind==='unrecorded').map(source=><p key={source.kind}>{t('sourceUnrecorded',{foods:source.foods.join(locale==='ja'?'、':', ')})}</p>)}
+      {sources.filter(source=>source.kind==='partial').flatMap(source=>source.foods.map(food=><p key={'partial:'+food}>{t('sourcePartial',{food})}</p>))}
+    </div>
     {estimated.map(item=><p key={item.id} className="text-label text-muted">{t('estimateNote',{name:item.name})}</p>)}
     {items.some(item=>item.source_ref?.startsWith("off:")) && <OpenFoodFactsAttribution/>}
   </section>;

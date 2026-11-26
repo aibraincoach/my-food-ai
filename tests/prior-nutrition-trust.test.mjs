@@ -27,3 +27,5 @@ test('validated copied provenance chains retain the exact food source and latest
  assert.equal(priorNutritionTrusted([item],[trace(),newer]),false);
  assert.equal(priorNutritionTrusted([item,{name:'Egg',item_nutrition:[nutrition]}],[trace()]),false);
 });
+
+test('old and new personal barcode refs never masquerade as a trusted USDA id',()=>{for(const source_ref of ['barcode:123','barcode-own:123'])assert.equal(priorNutritionTrusted([{...item,item_nutrition:[{...nutrition,source_ref}]}],[trace()]),false);});

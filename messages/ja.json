@@ -155,7 +155,18 @@
     "glyphCocktail": "カクテル",
     "glyphWine": "ワイン",
     "glyphBeer": "ビール",
-    "glyphTumbler": "タンブラー"
+    "glyphTumbler": "タンブラー",
+    "sourceLead": "栄養成分の出典：{sources}",
+    "sourceUsda": "USDA FoodData Central",
+    "sourceOff": "Open Food Facts",
+    "sourceSaved": "この商品用に保存した値",
+    "sourceLabel": "撮影したパッケージの栄養成分表示",
+    "sourceEstimate": "モデルの推定値",
+    "sourceMext": "日本食品標準成分表（MEXT）",
+    "sourceAmount": "入力した量",
+    "sourceEntered": "入力した値",
+    "sourcePartial": "{food}の一部の栄養素：出典が記録されていません",
+    "sourceUnrecorded": "出典が記録されていない食品：{foods}"
   },
   "metadata": {
     "description": "食べたものを、写真、文章、または音声で記録できます。目標や評価なしで、栄養を確認できます。"
@@ -799,7 +810,9 @@
     "sizeMug": "マグ",
     "sizeCan": "缶",
     "sizeBottle": "ボトル",
-    "drinkTea": "紅茶"
+    "drinkTea": "紅茶",
+    "caffeineCorrectionField": "カフェイン（mg）",
+    "caffeineCorrectionHint": "わからない場合は空欄のままにしてください。"
   },
   "thread": {
     "loadFailed": "コメントを読み込めませんでした。",

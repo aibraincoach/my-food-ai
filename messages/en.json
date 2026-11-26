@@ -155,7 +155,18 @@
     "glyphCocktail": "cocktail",
     "glyphWine": "wine",
     "glyphBeer": "beer",
-    "glyphTumbler": "tumbler"
+    "glyphTumbler": "tumbler",
+    "sourceLead": "Nutrition values from: {sources}",
+    "sourceUsda": "USDA FoodData Central",
+    "sourceOff": "Open Food Facts",
+    "sourceSaved": "values you saved for this product",
+    "sourceLabel": "the package label you photographed",
+    "sourceEstimate": "model estimates",
+    "sourceMext": "Standard Tables of Food Composition in Japan (MEXT)",
+    "sourceAmount": "the amount you entered",
+    "sourceEntered": "values you entered",
+    "sourcePartial": "Source not recorded for some nutrients of {food}",
+    "sourceUnrecorded": "Source not recorded for: {foods}"
   },
   "metadata": {
     "description": "Record what you eat using a photo, words, or your voice. Review your nutrition without targets or judgment."
@@ -799,7 +810,9 @@
     "sizeDouble": "double",
     "sizeMug": "mug",
     "sizeCan": "can",
-    "sizeBottle": "bottle"
+    "sizeBottle": "bottle",
+    "caffeineCorrectionField": "Caffeine (mg)",
+    "caffeineCorrectionHint": "Leave empty if you do not know."
   },
   "thread": {
     "loadFailed": "Comments could not be loaded.",

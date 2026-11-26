@@ -1303,7 +1303,7 @@
       "file": "src/app/api/drinks/identify/route.ts",
       "site": 19,
       "english": [
-        "Choose a smaller drink portion."
+        "Choose a name, volume and nutrition."
       ]
     },
     {

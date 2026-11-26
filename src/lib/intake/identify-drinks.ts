@@ -1,7 +1,7 @@
 import {isAlcoholic,keepsCaffeine} from './alcohol';
 import type {SupabaseClient} from '@supabase/supabase-js';
 import {identifyItems} from '@/lib/meta/spark';
-import {resolveFoodMatch} from '@/lib/fdc/match';
+import {resolveFoodMatchDetailed} from '@/lib/fdc/match';
 import {scaleNutrition} from '@/lib/fdc/nutrients';
 import {isDrinkItem} from './drinks-from-items';
 import {photoDrinkVolume} from './drink-volume';
@@ -16,12 +16,13 @@ export async function identifyDrinks(admin:SupabaseClient,_userId:string,photo:U
  for(const item of meal.items){
   const ml=photoDrinkVolume(item.portionText);if(ml===null)continue;
   const plainWater=/^(?:plain |tap |bottled |sparkling )?water(?:,? (?:glass|bottle|can))?$/i.test(item.name.trim());
-  const food=plainWater?null:await resolveFoodMatch(admin,item.name);
+  const match=plainWater?null:await resolveFoodMatchDetailed(admin,item.name);
+  const food=match?.food??null;
   if(!plainWater&&!isDrinkItem({name:item.name,food_category:food?.foodCategory}))continue;
-  const scaled=scaleNutrition(food,item.portionGrams);
-  if(!plainWater&&isAlcoholic({food_category:food?.foodCategory,micronutrients:scaled.micronutrients as StoredNutrient[]}))continue;
-  const nutrition:DrinkNutrition=plainWater?{calories:0,protein_g:0,carbs_g:0,fat_g:0,fibre_g:0,sugar_g:0,sodium_mg:0,micronutrients:[],source_ref:null,food_category:'Water'}:
-   {calories:scaled.calories,protein_g:scaled.proteinG,carbs_g:scaled.carbsG,fat_g:scaled.fatG,fibre_g:scaled.fibreG,sugar_g:scaled.sugarG,sodium_mg:scaled.sodiumMg,micronutrients:scaled.micronutrients as StoredNutrient[],source_ref:scaled.sourceRef,food_category:scaled.foodCategory??null};
+  const scaled=match?scaleNutrition(match.food,item.portionGrams,match.unavailable):null;
+  const nutrition:DrinkNutrition=plainWater?{calories:0,protein_g:0,carbs_g:0,fat_g:0,fibre_g:0,sugar_g:0,sodium_mg:0,micronutrients:[],source_ref:'user:drink-volume',food_category:'Water'}:
+   {calories:scaled!.calories,protein_g:scaled!.proteinG,carbs_g:scaled!.carbsG,fat_g:scaled!.fatG,fibre_g:scaled!.fibreG,sugar_g:scaled!.sugarG,sodium_mg:scaled!.sodiumMg,micronutrients:scaled!.micronutrients as StoredNutrient[],source_ref:scaled!.sourceRef,food_category:scaled!.foodCategory??null};
+  if(!plainWater&&isAlcoholic({food_category:nutrition.food_category,micronutrients:nutrition.micronutrients}))continue;
   if(!keepsCaffeine({name:item.name,food_category:nutrition.food_category,micronutrients:nutrition.micronutrients}))nutrition.micronutrients=nutrition.micronutrients.filter(n=>n.nutrientId!==1057);
   const caffeine=nutrition.micronutrients.find(n=>n.nutrientId===1057);
   const caffeineMg=caffeine?(caffeine.value===null?null:Number(caffeine.value)):plainWater?0:null;

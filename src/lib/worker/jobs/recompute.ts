@@ -14,7 +14,7 @@ import { markReady, refreshOperatorSavedMeal } from "@/lib/pipeline/persist";
 import { toNumber, type CurrentItem, type NutritionLike, type StoredNutrient } from "@/lib/nutrition/totals";
 
 // The nutrition sources that scripts/numbers/11-rematch.sql carries over: a barcode, a label or the person's own numbers.
-export const PACKAGE_SOURCE = /^(barcode:|off:|label|user:)/;
+export const PACKAGE_SOURCE = /^(barcode(?:-own)?:|off:|label|user:)/;
 
 export default async function recompute(admin: SupabaseClient, job: JobRow): Promise<void> {
   if (!job.post_id) throw new Error("recompute: post is required.");

@@ -10,7 +10,7 @@ insert into public.post_items (post_id, name, portion_text, portion_grams, box, 
                                not_eaten_grams, count_text, not_eaten_count_text, not_eaten_calories, supersedes)
 select o.post_id, o.name, o.portion_text, o.portion_grams, o.box, o.mask_path, o.confidence, o.source, o.gtin,
        o.not_eaten_grams, o.count_text, o.not_eaten_count_text, o.not_eaten_calories,
-       case when n.source_ref ~ '^(barcode:|off:|label|user:)' or o.gtin is not null then o.id end
+       case when n.source_ref ~ '^(barcode(-own)?:|off:|label|user:)' or o.gtin is not null then o.id end
 from old o left join public.item_nutrition n on n.post_item_id = o.id;
 update public.posts set status = 'queued', fail_reason = null
 where id = :'post'::uuid and status = 'ready'
