@@ -37,7 +37,9 @@ const IMPLIED: [RegExp, string[]][] = [
 ];
 const EGG_DISH = /\bomelet(?:te)?s?\b|\bscrambled?\b|\bfrittatas?\b/i;
 // Words that are not the animal they name: "chicken-fried" steak is beef, and imitation crab is surimi.
-const STYLES: [RegExp, string][] = [[/\bchicken[- ]fried(?= steaks?\b)/gi, "fried"], [/\bimitation crab\b|\bcrab sticks?\b/gi, "surimi"]];
+const STYLES: [RegExp, string][] = [[/\bchicken[- ]fried(?= steaks?\b)/gi, "fried"], [/\bimitation crab\b|\bcrab sticks?\b/gi, "surimi"],
+  // #1175: dish words naming a bread imply no animal; keep the bread noun.
+  [/\b(?:(?:cheese)?burgers?|hamburgers?|hot ?dogs?|frankfurters?|wieners?)[- ]?(buns?|rolls?)\b|^(rolls?|buns?),\s*(?:hamburger|hot ?dogs?)(?:\s+or\s+(?:hamburger|hot ?dogs?))?\b/gi, "$1$2"]];
 
 function proteins(text: string): Set<string> {
   const plain = STYLES.reduce((value, [words, replacement]) => value.replace(words, replacement), text);
