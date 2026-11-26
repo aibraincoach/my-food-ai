@@ -7,3 +7,4 @@ for(const [name,description]of [['bacon cheeseburger','beef patty'],['imitation 
 // Current syntax treats these direct dish-word + roll names as bread, including the ambiguous filled-roll edge.
 for(const name of ['cheeseburger roll','hot dog roll','wiener rolls'])test(`direct roll name is bread at the protein filter: ${name}`,()=>assert.equal(referenceProteinMismatch(name,'Chicken, cooked'),false));
 for(const [name,description]of [['pork bun','Chicken, cooked'],['chicken bun','Pork, cooked'],['tuna bun','Salmon, cooked']])test(`a named animal beside bun remains judged: ${name}`,()=>assert.equal(referenceProteinMismatch(name,description),true));
+for(const name of ['hot dog roll-up','hot dog roll ups','burger roll-ups'])test(`a filled roll-up retains its implied meat: ${name}`,()=>assert.equal(referenceProteinMismatch(name,'Chicken, cooked'),true));
