@@ -1,9 +1,9 @@
--- Meals with numbers that cannot be right, and whether 12-reanalyse.sql would take each one.
--- Read-only, one SELECT. psql variable: uid (the account id).
--- It repeats rules a1, a2, b, d, e, f and g1 of 03-suspicious.sql word for word (not c, g2, h or i), and 03's way of
--- finding each record's description (cache_foods, described0, described), which g1 reads,
--- because one SELECT in a read-only session cannot read another file. A rule change is made in 03, 04 and 14.
--- can_reanalyse repeats the guards of 12-reanalyse.sql; a change to those guards is made in 12 and 14.
+-- #694: rule evidence on one owner's current, non-deleted ready posts.
+-- Read-only, one SELECT. psql variable uid. Output: prefix, failing item count,
+-- rule codes (empty for unknown-only rows), and otherwise-eligible g1 items
+-- whose description cannot be judged. A missing description is not a g1 hit.
+-- Numeric/name predicates a1/a2/b/d/e/f/g1 are retained; identity lookup is
+-- stored closest basis first, then indexed detail only. No shared search scan.
 with items as (
   select p.id as post_id, i.id as item_id, i.name, i.portion_grams, i.portion_text,
          n.post_item_id is not null as has_row, n.calories, n.protein_g, n.carbs_g, n.fat_g,
@@ -13,20 +13,14 @@ with items as (
   join public.post_items i on i.post_id = p.id and i.superseded_at is null
   left join public.item_nutrition n on n.post_item_id = i.id
   where p.user_id = :'uid'::uuid and p.status = 'ready' and p.deleted_at is null
+), needed_ids as materialized (
+  select distinct source_ref as fdc_id from items where source_ref ~ '^[1-9][0-9]*$'
 ), cache_foods as (
-  -- One description per record, chosen the same way every run and by the rule of 06-seafood.sql:
-  -- a detail entry ('fdc_cache detail') wins over a search entry ('fdc_cache search'); then the first description in text order.
-  select distinct on (fdc_id) fdc_id, description from (
-    select (f->>'fdcId') as fdc_id, f->>'description' as description, 'fdc_cache search' as found_in
-    from public.fdc_cache c
-    cross join lateral jsonb_array_elements(case when jsonb_typeof(coalesce(c.response->'payload'->'foods', c.response->'foods')) = 'array'
-                                             then coalesce(c.response->'payload'->'foods', c.response->'foods') else '[]'::jsonb end) f
-    union all
-    select coalesce(c.response->'payload'->>'fdcId', c.response->>'fdcId'), coalesce(c.response->'payload'->>'description', c.response->>'description'), 'fdc_cache detail'
-    from public.fdc_cache c where c.query like 'fdc-detail:%'
-  ) d
-  where fdc_id in (select source_ref from items where source_ref ~ '^[1-9][0-9]*$') and description is not null
-  order by fdc_id, found_in, description
+  -- query is the fdc_cache PRIMARY KEY. Do not expand the shared search cache.
+  select coalesce(c.response->'payload'->>'fdcId', c.response->>'fdcId') as fdc_id,
+         coalesce(c.response->'payload'->>'description', c.response->>'description') as description
+  from public.fdc_cache c
+  where c.query = any(array(select 'fdc-detail:' || fdc_id from needed_ids))
 ), described0 as (
   select it.*,
          coalesce((select m->'approximation'->>'basis' from jsonb_array_elements(case when jsonb_typeof(it.micro) = 'array' then it.micro else '[]'::jsonb end) m
@@ -35,6 +29,14 @@ with items as (
 ), described as (
   select d0.*, case when raw_description like 'Combined %' then regexp_replace(raw_description, ' for .*$', '') else raw_description end as record_description
   from described0 d0
+), g1_candidates as (
+  select * from described
+  where name ~* '\m(coffee|espresso|americano|tea)\M' and name !~* '\m(milk|latte|cappuccino|sugar|sweet|sweetened|condensed|mocha|brownie|cookie|cake)\M'
+    and portion_grams > 0 and calories / portion_grams > 0.25
+    and not (name ~* '\miced\M' and name ~* '\mtea\M' and calories / portion_grams <= 0.40)
+), g1_unknown as (
+  select post_id, count(*) as g1_cannot_tell from g1_candidates
+  where record_description is null group by post_id
 ), flags as (
   select post_id, item_id, 'a1' as rule from items where not has_row
   union all
@@ -53,25 +55,16 @@ with items as (
   select post_id, item_id, 'f' from items
   where calories < 0 or protein_g < 0 or carbs_g < 0 or fat_g < 0 or fibre_g < 0 or sugar_g < 0 or sodium_mg < 0
   union all
-  select post_id, item_id, 'g1' from described
-  where name ~* '\m(coffee|espresso|americano|tea)\M' and name !~* '\m(milk|latte|cappuccino|sugar|sweet|sweetened|condensed|mocha|brownie|cookie|cake)\M'
-    and portion_grams > 0 and calories / portion_grams > 0.25
-    and not (name ~* '\miced\M' and name ~* '\mtea\M' and calories / portion_grams <= 0.40)
-    -- #990: a coffee or tea matched to a record that holds milk (USDA 171880, "Beverages, coffee, ready to drink, milk
-    -- based, sweetened") is not plain, whatever its name says.
-    and coalesce(record_description, '') !~* '\mmilk\M'
+  select post_id, item_id, 'g1' from g1_candidates
+  where record_description is not null and record_description !~* '\mmilk\M'
 ), failing as (
   select post_id, count(distinct item_id) as items_failing, count(distinct rule) as rule_count,
          string_agg(distinct rule, ',' order by rule) as rules
   from flags group by post_id
 )
-select left(f.post_id::text, 8) as post, f.items_failing, f.rules,
-       round((select sum(it.calories) from items it where it.post_id = f.post_id), 1) as kcal,
-       (p.analysis_initialized_at is not null and p.source_post_id is null
-        and exists (select 1 from public.post_media m where m.post_id = p.id and m.kind = 'photo' and not m.not_eaten)
-        and not exists (select 1 from public.post_media m where m.post_id = p.id and m.kind = 'photo' and m.not_eaten)
-        and not exists (select 1 from public.post_comments c where c.post_id = p.id and c.author = 'user' and c.reverted_at is null)
-        and not exists (select 1 from public.intake_logs l where l.post_id = p.id and l.source = 'sheet')
-        and not exists (select 1 from public.jobs j where j.post_id = p.id and j.status in ('queued', 'running'))) as can_reanalyse
-from failing f join public.posts p on p.id = f.post_id
-order by f.rule_count desc, kcal desc nulls last, post;
+select left(p.post_id::text, 8) as post, coalesce(f.items_failing, 0) as items_failing,
+       coalesce(f.rules, '') as rules, coalesce(u.g1_cannot_tell, 0) as g1_cannot_tell
+from (select post_id from failing union select post_id from g1_unknown) p
+left join failing f on f.post_id = p.post_id
+left join g1_unknown u on u.post_id = p.post_id
+order by coalesce(f.rule_count, 0) desc, post;
