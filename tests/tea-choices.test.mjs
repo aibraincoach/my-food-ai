@@ -10,7 +10,7 @@ for(const [id,caffeine,fdcId] of [['tea-black',60,173227],['tea-green',36,171917
  const reference=TEA_REFERENCES[id];assert.equal(reference.fdcId,fdcId);let saved;
  const admin={from(table){if(table==='posts')return{update(){return this;},eq(){return this;},is(){return this;},select(){return this;},async maybeSingle(){return{data:{render_time_zone:'UTC'},error:null};}};
  if(table!=='fdc_cache')throw Error('optional hydration omitted');let key;return{select(){return this;},eq(_c,value){key=value;return this;},async maybeSingle(){assert.equal(key,`fdc-detail:${reference.fdcId}`);return{data:{response:{kind:'fdc-detail-v1',fdcId:reference.fdcId,payload:{fdcId:reference.fdcId,description:reference.description,dataType:'SR Legacy',foodNutrients:[{nutrient:{id:1057,name:'Caffeine',unitName:'mg'},amount:reference.caffeinePer100g}]}}},error:null};}};},async rpc(_name,args){saved=args;return{data:'post',error:null};}};
- const input=parseDrinkInput({tile:3,tea_id:id});assert.equal(input.id,id);assert.equal(teaCaffeine(id,300),caffeine);
+ const input=parseDrinkInput({tile:3,tea_id:id,caffeineMg:999999,calories:999999,counts:[999999]});assert.equal(input.id,id);assert.equal(teaCaffeine(id,300),caffeine);
  const oldError=console.error;console.error=()=>{};try{await postDrink(admin,'owner',{...input,label:'Renamed drink'},'UTC',operation);}finally{console.error=oldError;}
  assert.equal(saved.p_caffeine_mg,caffeine);assert.equal(saved.p_nutrition.source_ref,String(reference.fdcId));assert.equal(saved.p_nutrition.micronutrients.find(n=>n.nutrientId===1057).value,caffeine);
 });
@@ -25,11 +25,11 @@ test('old hash is unchanged and replays the receipt; new explicit tea identities
  const admin={from(table){return{select(){return this;},eq(){return this;},is(){return this;},async maybeSingle(){return{data:table==='posts'?{id:'old-post'}:{user_id:'owner',kind:'tile',request_key:old,post_id:'old-post',cancelled:false},error:null};}};}};
  assert.deepEqual(await readDrinkReceipt(admin,'owner',operation.id,old,'tile'),{postId:'old-post'});
 });
-test('tea preference bucket uses stored identity, never a Tea label',()=>{
- const row=(label,ref)=>({label,posts:{post_items:[{item_nutrition:{source_ref:ref}}]}});
- for(const ref of ['173227','171917','174120'])assert.equal(tileUsageIndex(row('Tea, mug',ref)),3);
- assert.equal(tileUsageIndex(row('Tea cake','1234')),-1);assert.equal(tileUsageIndex(row('Tea, mug','1234')),-1);
- assert.equal(tileUsageIndex(row('Coffee, cup','1234')),1);
+test('tea preference bucket accepts exact sheet labels, not photo items or free text',()=>{
+ for(const name of ['Tea','Black tea','Green tea','Oolong tea'])for(const size of ['mug','large'])assert.equal(tileUsageIndex({label:`${name}, ${size}`,source:'sheet'}),3);
+ for(const label of ['Black tea, mug','Tea, mug','Tea cake','Tea','tea, mug'])assert.equal(tileUsageIndex({label,source:'item'}),-1);
+ for(const label of ['Tea cake','Tea','tea, mug','Black tea, custom'])assert.equal(tileUsageIndex({label,source:'sheet'}),-1);
+ assert.equal(tileUsageIndex({label:'Coffee, cup',source:'item'}),1,'the other five preference rules stay unchanged');
 });
 for(const defect of ['missing caffeine','wrong identity'])test(`tea ${defect} fails before publication without another source`,async()=>{
  let writes=0,reads=0;const ref=TEA_REFERENCES['tea-green'];

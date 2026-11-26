@@ -1,16 +1,14 @@
 import {DRINK_TILES,TILE_SIZES} from './intake';
 import {TEA_REFERENCES} from './tea-references';
 
-function embedded(value:unknown):Record<string,unknown>|null{
- if(Array.isArray(value))return value.length===1?embedded(value[0]):null;
- return value!==null&&typeof value==='object'?value as Record<string,unknown>:null;
-}
-export function tileUsageIndex(row:{label:unknown;posts?:unknown}):number{
- const post=embedded(row.posts),item=embedded(post?.post_items),nutrition=embedded(item?.item_nutrition);
- const ref=nutrition?.source_ref;
- // A renamed or copied tea is still that tea. Text is not supplier identity.
- if(Object.values(TEA_REFERENCES).some(tea=>ref===String(tea.fdcId)))return 3;
- // The other five tiles retain their existing preference logic. A non-tea
- // nutrition reference must never enter the tea bucket via its display label.
+const teaLabels=new Set([
+ ...Object.values(TEA_REFERENCES).flatMap(tea=>TILE_SIZES[3].map(size=>`${tea.name}, ${size.word}`)),
+ ...TILE_SIZES[3].map(size=>`Tea, ${size.word}`),
+]);
+export function tileUsageIndex(row:{label:unknown;source:unknown}):number{
+ // Preference only. Copied sheet rows retain the tile label; an owner can also
+ // craft one via saved_meals JSON. This never selects a nutrition reference.
+ if(row.source==='sheet'&&typeof row.label==='string'&&teaLabels.has(row.label))return 3;
+ // Preserve the other five tiles' existing preference logic.
  return DRINK_TILES.findIndex((tile,index)=>index!==3&&TILE_SIZES[index].some(size=>row.label===`${tile.name}, ${size.word}`));
 }

@@ -72,6 +72,16 @@ test('actual intake route commits all six server tiles and rejects retired kind-
   const after=await counts(cookie);
   assert.deepEqual(after.counts,before.counts.map((count,index)=>count+(index===1?1:0)));
   assert.deepEqual(await counts(otherCookie),otherBefore,'another account never inherits the first account’s counts');
+  const owner=checked(await db.from('posts').select('user_id').eq('id',ids[0]).single()).user_id;
+  const preferenceBefore=await counts(cookie);
+  for(const [label,source]of [['Tea, mug','sheet'],['Black tea, mug','item'],['Tea cake','sheet']]){
+   const post=checked(await db.from('posts').insert({user_id:owner,status:'ready',render_time_zone:'UTC'}).select('id').single());ids.push(post.id);
+   const item=checked(await db.from('post_items').insert({post_id:post.id,name:label,source:'user'}).select('id').single());
+   checked(await db.from('intake_logs').insert({user_id:owner,post_id:post.id,source,post_item_id:source==='item'?item.id:null,kind:'caffeine',amount:1,ml:300,label,logged_at:new Date().toISOString()}));
+  }
+  const preferenceAfter=await counts(cookie);assert.deepEqual(preferenceAfter.counts,preferenceBefore.counts.map((n,index)=>n+(index===3?1:0)),'Only the old exact sheet tea label enters the preference bucket');
+  assert.deepEqual(await counts(otherCookie),otherBefore,'the added labels affect only their owner');
+
  }finally{
   if(ids.length)checked(await db.from('posts').delete().in('id',ids));
   if(operations.length)checked(await db.from('drink_post_operations').delete().in('operation_id',operations));
